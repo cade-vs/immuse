@@ -16,24 +16,29 @@ INIT { $| = 1; }
 
 our $help_text = <<END;
 usage: $0 <options> [input-files]
+
 options:
     -o output-file-name  -- sets output file, works only for single input file
     -f output-format     -- sets output file format (i.e. JPEG, GIF, etc.) 
+    -i input-format      -- sets input  file format (i.e. JPEG, GIF, etc.) 
     -x width             -- sets output image width in pixels (keep aspect!)
     -y height            -- sets output image width in pixels (keep aspect!)
     -x width%            -- sets output image width in percents (keep aspect!)
     -y height%           -- sets output image width in percents (keep aspect!)
     -q quality           -- output quality in percents (if applicable)
     --        -- end of options
+
 notes:
-  * "-f list" will list supported file formats
-  * if both -x and -y specified, aspect will not be kept!
-  * options cannot be grouped: -fd is invalid, correct is: -f -d
+    * "-i list" or "-f list" will list supported file formats
+    * if both -x and -y specified, aspect will not be kept!
+    * options cannot be grouped: -fd is invalid, correct is: -f -d
+
 END
 
 
 my $opt_out_file_name;
 my $opt_out_file_format;
+my $opt_in_file_format;
 my $opt_out_x;
 my $opt_out_y;
 my $opt_out_x_percents;
@@ -63,6 +68,11 @@ while( @ARGV )
   if( /-f/ )
     {
     $opt_out_file_format = lc shift;
+    next;
+    }
+  if( /-i/ )
+    {
+    $opt_in_file_format = lc shift;
     next;
     }
   if( /-x/ )
@@ -109,9 +119,14 @@ while( @ARGV )
   push @args, $_;
   }
 
-if( $opt_out_file_format =~ /help|list/ )
+
+my %IFMT = map { $_ => 1 } Imager->read_types();
+my %OFMT = map { $_ => 1 } Imager->write_types();
+
+if( $opt_in_file_format =~ /help|list/ or $opt_out_file_format =~ /help|list/ )
   {
-  print "supported output formats: " . join( ',', Imager->write_types() ) . "\n";
+  print "supported input  formats: " . join( ',', sort keys %OFMT ) . "\n";
+  print "supported output formats: " . join( ',', sort keys %OFMT ) . "\n";
   }
 
 exit 0;
