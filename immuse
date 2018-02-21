@@ -26,6 +26,8 @@ options:
     -x width%            -- sets output image width in percents (keep aspect!)
     -y height%           -- sets output image width in percents (keep aspect!)
     -q quality           -- output quality in percents (if applicable)
+    -a                   -- always overwrite files (WARNING!)
+    -n                   -- never  overwrite files (skip, existing)
     --        -- end of options
 
 notes:
@@ -44,6 +46,15 @@ my $opt_out_y;
 my $opt_out_x_percents;
 my $opt_out_y_percents;
 my $opt_out_quality = 72;
+my $opt_always_overwrite;
+my $opt_never_overwrite;
+
+my %IFMT = map { $_ => $_ } Imager->read_types();
+my %OFMT = map { $_ => $_ } Imager->write_types();
+
+# known format shortcuts
+$IFMT{ 'jpg' } = 'jpeg' if exists $IFMT{ 'jpeg' };
+$OFMT{ 'jpg' } = 'jpeg' if exists $OFMT{ 'jpeg' };
 
 if( @ARGV == 0 )
   {
@@ -60,24 +71,36 @@ while( @ARGV )
     push @args, @ARGV;
     last;
     }
-  if( /-o/ )
+  if( /^-a$/ )
+    {
+    $opt_always_overwrite = 1;
+    next;
+    }
+  if( /^-n$/ )
+    {
+    $opt_never_overwrite = 1;
+    next;
+    }
+  if( /^-o$/ )
     {
     $opt_out_file_name = shift;
     next;
     }
-  if( /-f/ )
+  if( /^-f([a-z]*)$/i )
     {
-    $opt_out_file_format = lc shift;
+    $opt_out_file_format = lc $1 || lc shift;
+    die "error: unsupported output file format [$opt_out_file_format] use '-f list'\n" unless exists $OFMT{ $opt_out_file_format };
     next;
     }
-  if( /-i/ )
+  if( /^-i([a-z]*)$/ )
     {
-    $opt_in_file_format = lc shift;
+    $opt_in_file_format = lc $1 || lc shift;
+    die "error: unsupported input file format [$opt_in_file_format] use '-i list'\n" unless exists $IFMT{ $opt_in_file_format };
     next;
     }
-  if( /-x/ )
+  if( /^-x(\d*%?)$/ )
     {
-    $opt_out_x = shift;
+    $opt_out_x = $1 || shift;
     if( $opt_out_x =~ s/%$// )
       {
       $opt_out_x_percents = $opt_out_x;
@@ -86,11 +109,11 @@ while( @ARGV )
       }
     else
       {
-      die "fatal: -x must be non-zero positive number" if $opt_out_x <= 0;
+      die "error: -x must be non-zero positive number\n" if $opt_out_x <= 0;
       }  
     next;
     }
-  if( /-y/ )
+  if( /^-y(\d*%?)$/ )
     {
     $opt_out_y = shift;
     if( $opt_out_y =~ s/%$// )
@@ -101,13 +124,13 @@ while( @ARGV )
       }
     else
       {
-      die "fatal: -y must be non-zero positive number" if $opt_out_y <= 0;
+      die "error: -y must be non-zero positive number\n" if $opt_out_y <= 0;
       }  
     next;
     }
-  if( /-q/ )
+  if( /^-q(\d*)$/ )
     {
-    $opt_out_quality = int(shift);
+    $opt_out_quality = int($1 || shift);
     $opt_out_quality = 72 if $opt_out_quality < 1 or $opt_out_quality > 100;
     next;
     }
@@ -120,8 +143,7 @@ while( @ARGV )
   }
 
 
-my %IFMT = map { $_ => 1 } Imager->read_types();
-my %OFMT = map { $_ => 1 } Imager->write_types();
+print @args;
 
 if( $opt_in_file_format =~ /help|list/ or $opt_out_file_format =~ /help|list/ )
   {
@@ -129,4 +151,81 @@ if( $opt_in_file_format =~ /help|list/ or $opt_out_file_format =~ /help|list/ )
   print "supported output formats: " . join( ',', sort keys %OFMT ) . "\n";
   }
 
+die "error: -o can be used to convert only single file\n" if @args > 1 and $opt_out_file_name;
+die "status: nothing to do: no file names specified\n" unless @args > 0;
+
+
+for my $infile ( @args )
+{
+  process_file( $infile );
+}
+
 exit 0;
+
+##############################################################################
+
+sub process_file
+{
+  my $infile = shift;
+  
+  my $outfile = $opt_out_file_name ? $opt_out_file_name : ( file_path( $infile ) ? file_path( $infile ) . '/' : undef  ) . file_name( $infile ) . '.' . $opt_out_file_format;
+  
+  my $in_file_format = $opt_in_file_format ? $opt_in_file_format : lc file_ext( $infile );
+
+  die "error: unsupported input file format [$in_file_format] use '-i list'\n" unless exists $IFMT{ $in_file_format };
+
+  $in_file_format = $IFMT{ $in_file_format };
+  $opt_out_file_format = $OFMT{ $opt_out_file_format };
+  
+  print "$infile --> $outfile";
+  
+  if( -e $outfile )
+    {
+    if( $opt_never_overwrite )
+      {
+      print " -- SKIPPED\n";
+      return;
+      }
+    if( ! $opt_always_overwrite )
+      {
+      my $ans_ok;
+      while( ! $ans_ok )
+        {
+        print "\n[$outfile] exists, overwrite? (Yes|Always|No|Never)?";
+        my $ans = lc <STDIN>;
+        if( $ans =~ /^\s*y(es)?\s*$/ )
+          {
+          $ans_ok = 1;
+          }
+        elsif( $ans =~ /^\s*n(o)?\s*$/ )  
+          {
+          return;
+          }
+        elsif( $ans =~ /^\s*a(lways)?\s*$/ )  
+          {
+          $ans_ok = 1;
+          $opt_always_overwrite = 1;
+          }
+        elsif( $ans =~ /^\s*n(ever)?\s*$/ )  
+          {
+          $opt_never_overwrite = 1;
+          return;
+          }
+        }  
+      }  
+    }
+
+  print "\n";
+  
+  my $img = Imager->new();
+  $img->read( file => $infile, type => $in_file_format )
+    or die "cannot read [$infile]: " . $img->errstr() . "\n";
+  
+
+  $img->write( file => $outfile, type => $opt_out_file_format )
+    or die "cannot read [$outfile]: " . $img->errstr() . "\n";
+  
+}
+
+### EOF ######################################################################
+
