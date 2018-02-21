@@ -1,0 +1,117 @@
+#!/usr/bin/perl
+##############################################################################
+##
+##  immuse -- image file conversion utility
+##  2018 (c) Vladi Belperchinov-Shabanski "Cade"
+##  <cade@bis.bg> <cade@biscom.net> <cade@cpan.org>
+##
+##  LICENSE: GPLv2
+##
+##############################################################################
+use strict;
+use Imager;
+use Data::Tools;
+
+INIT { $| = 1; }
+
+our $help_text = <<END;
+usage: $0 <options> [input-files]
+options:
+    -o output-file-name  -- sets output file, works only for single input file
+    -f output-format     -- sets output file format (i.e. JPEG, GIF, etc.) 
+    -x width             -- sets output image width in pixels (keep aspect!)
+    -y height            -- sets output image width in pixels (keep aspect!)
+    -x width%            -- sets output image width in percents (keep aspect!)
+    -y height%           -- sets output image width in percents (keep aspect!)
+    -q quality           -- output quality in percents (if applicable)
+    --        -- end of options
+notes:
+  * "-f list" will list supported file formats
+  * if both -x and -y specified, aspect will not be kept!
+  * options cannot be grouped: -fd is invalid, correct is: -f -d
+END
+
+
+my $opt_out_file_name;
+my $opt_out_file_format;
+my $opt_out_x;
+my $opt_out_y;
+my $opt_out_x_percents;
+my $opt_out_y_percents;
+my $opt_out_quality = 72;
+
+if( @ARGV == 0 )
+  {
+  print $help_text;
+  exit;
+  }
+
+our @args;
+while( @ARGV )
+  {
+  $_ = shift;
+  if( /^--+$/io )
+    {
+    push @args, @ARGV;
+    last;
+    }
+  if( /-o/ )
+    {
+    $opt_out_file_name = shift;
+    next;
+    }
+  if( /-f/ )
+    {
+    $opt_out_file_format = lc shift;
+    next;
+    }
+  if( /-x/ )
+    {
+    $opt_out_x = shift;
+    if( $opt_out_x =~ s/%$// )
+      {
+      $opt_out_x_percents = $opt_out_x;
+      $opt_out_x = undef;
+      $opt_out_x_percents = 100 if $opt_out_x_percents <= 0 or $opt_out_x_percents > 100;
+      }
+    else
+      {
+      die "fatal: -x must be non-zero positive number" if $opt_out_x <= 0;
+      }  
+    next;
+    }
+  if( /-y/ )
+    {
+    $opt_out_y = shift;
+    if( $opt_out_y =~ s/%$// )
+      {
+      $opt_out_y_percents = $opt_out_y;
+      $opt_out_y = undef;
+      $opt_out_y_percents = 100 if $opt_out_y_percents <= 0 or $opt_out_y_percents > 100;
+      }
+    else
+      {
+      die "fatal: -y must be non-zero positive number" if $opt_out_y <= 0;
+      }  
+    next;
+    }
+  if( /-q/ )
+    {
+    $opt_out_quality = int(shift);
+    $opt_out_quality = 72 if $opt_out_quality < 1 or $opt_out_quality > 100;
+    next;
+    }
+  if( /^(--?h(elp)?|help)$/io )
+    {
+    print $help_text;
+    exit;
+    }
+  push @args, $_;
+  }
+
+if( $opt_out_file_format =~ /help|list/ )
+  {
+  print "supported output formats: " . join( ',', Imager->write_types() ) . "\n";
+  }
+
+exit 0;
