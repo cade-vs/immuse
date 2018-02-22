@@ -31,6 +31,8 @@ options:
     -h                   -- flip image horizontally 
     -v                   -- flip image vertically   
     -g                   -- convert image to grayscale
+    -r degrees           -- rotate by degrees CW, negative for CCW
+    -r exif              -- rotate by EXIF info
     -q quality           -- output quality in percents (if applicable)
     -a                   -- always overwrite files (WARNING!)
     -n                   -- never  overwrite files (skip, existing)
@@ -56,6 +58,7 @@ my $opt_out_y_percents;
 my $opt_out_quality = 72;
 my $opt_always_overwrite;
 my $opt_never_overwrite;
+my $opt_rotate;
 my $opt_flip_h;
 my $opt_flip_v;
 my $opt_grayscale;
@@ -110,6 +113,11 @@ while( @ARGV )
   if( /^-o$/ )
     {
     $opt_out_file_name = shift;
+    next;
+    }
+  if( /^-r(exif|[-+]?\d+)?$/ )
+    {
+    $opt_rotate = lc $1 || lc shift;
     next;
     }
   if( /^-f([a-z]*)$/i )
@@ -275,7 +283,6 @@ sub process_file
 
 #print "$opt_out_x_percents $opt_out_y_percents $opt_out_x $opt_out_y -- $out_w $out_h\n";
 
-    
   if( $out_w > 0 and $out_h > 0 )  
     {
     print "scaling to $out_w x $out_h\n";
@@ -284,6 +291,18 @@ sub process_file
 
   $img->flip( dir => "h" ) if $opt_flip_h;
   $img->flip( dir => "v" ) if $opt_flip_v;
+
+  my $rotate;
+  if( $opt_rotate eq 'exif' )
+    {
+    $rotate = 0;
+    }
+  else
+    {
+    $rotate = $opt_rotate;
+    }
+    
+  $img = $img->rotate( degrees => $rotate ) if $rotate;
   
   $img = $img->convert( preset => 'grey'  );
 
