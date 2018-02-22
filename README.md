@@ -27,27 +27,25 @@ IMMUSE is written in Perl and uses Imager perl module.
 
 # QUICK USAGE HELP
 
-usage: immuse <options> [input-files]
+    usage: immuse <options> [input-files]
 
-options:
-    -o output-file-name  -- sets output file, works only for single input file
-    -f output-format     -- sets output file format (i.e. JPEG, GIF, etc.) 
-    -i input-format      -- sets input  file format (i.e. JPEG, GIF, etc.) 
-    -x width             -- sets output image width in pixels (keeps aspect!)
-    -y height            -- sets output image width in pixels (keeps aspect!)
-    -x width%            -- sets output image width in percents (keeps aspect!)
-    -y height%           -- sets output image width in percents (keeps aspect!)
-    -h                   -- flip image horizontally 
-    -v                   -- flip image vertically   
-    -g                   -- convert image to grayscale
-    -r degrees           -- rotate by degrees CW, negative for CCW
-    -r exif              -- rotate by EXIF info
-    -q quality           -- output quality in percents (if applicable)
-    -a                   -- always overwrite files (WARNING!)
-    -n                   -- never  overwrite files (skip, existing)
-    --        -- end of options
-
-notes:
+    options:
+        -o output-file-name  -- sets output file, works only for single input file
+        -f output-format     -- sets output file format (i.e. JPEG, GIF, etc.) 
+        -i input-format      -- sets input  file format (i.e. JPEG, GIF, etc.) 
+        -x width             -- sets output image width in pixels (keeps aspect!)
+        -y height            -- sets output image width in pixels (keeps aspect!)
+        -x width%            -- sets output image width in percents (keeps aspect!)
+        -y height%           -- sets output image width in percents (keeps aspect!)
+        -h                   -- flip image horizontally 
+        -v                   -- flip image vertically   
+        -g                   -- convert image to grayscale
+        -r degrees           -- rotate by degrees CW, negative for CCW
+        -r exif              -- rotate by EXIF info
+        -q quality           -- output quality in percents (if applicable)
+        -a                   -- always overwrite files (WARNING!)
+        -n                   -- never  overwrite files (skip, existing)
+        --        -- end of options
 
 # NOTES
 
