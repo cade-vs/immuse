@@ -188,7 +188,6 @@ if( $opt_in_file_format =~ /help|list/ or $opt_out_file_format =~ /help|list/ )
 die "error: -o can be used to convert only single file\n" if @args > 1 and $opt_out_file_name;
 die "status: nothing to do: no file names specified\n" unless @args > 0;
 
-
 for my $infile ( @args )
 {
   process_file( $infile );
@@ -201,12 +200,16 @@ exit 0;
 sub process_file
 {
   my $infile = shift;
+
+  my $out_file_format = $opt_out_file_format ? $opt_out_file_format : lc file_ext( $infile );
   
-  my $outfile = $opt_out_file_name ? $opt_out_file_name : ( file_path( $infile ) ? file_path( $infile ) . '/' : undef  ) . file_name( $infile ) . '.' . $opt_out_file_format;
+  my $outfile = $opt_out_file_name ? $opt_out_file_name : ( file_path( $infile ) ? file_path( $infile ) . '/' : undef  ) . file_name( $infile ) . '.' . $out_file_format;
+  print "++++++++++++++++++++++++++++ $infile --> $outfile\n";
   
   my $in_file_format = $opt_in_file_format ? $opt_in_file_format : lc file_ext( $infile );
 
-  die "error: unsupported input file format [$in_file_format] use '-i list'\n" unless exists $IFMT{ $in_file_format };
+  die "error: unsupported input file format [$in_file_format] use '-i list'\n"  unless exists $IFMT{ $in_file_format };
+  die "error: unsupported output file format [$out_file_format] use '-f list'\n" unless exists $OFMT{ $out_file_format };
 
   $in_file_format = $IFMT{ $in_file_format };
   $opt_out_file_format = $OFMT{ $opt_out_file_format };
