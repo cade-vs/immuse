@@ -1,6 +1,6 @@
 # NAME
 
-IMMUSE -- image conversion and manipulation utility
+IMMUSE is command-line image conversion and manipulation utility
 
 # SYNOPSIS
 
@@ -10,8 +10,6 @@ IMMUSE -- image conversion and manipulation utility
 
 # INTRODUCTION
 
-IMMUSE is a command line utility for image conversion and manipulation.
-IMMUSE is written in Perl and uses Imager perl module.
 IMMUSE offers the following image manipulations:
 
     * format conversion (all supported by local Imager installation)
@@ -24,6 +22,8 @@ IMMUSE offers the following image manipulations:
 
 IMMUSE is designed to work on many files in one run but can be used on single 
 file with optional destination filename change.
+
+IMMUSE is written in Perl and uses Imager perl module.
 
 # QUICK USAGE HELP
 
