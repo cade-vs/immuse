@@ -224,7 +224,6 @@ sub process_file
     {
     $outfile = $out_dir . file_name( $infile ) . '.' . $out_file_format;
     }
-  print "++++++++++++++++++++++++++++ $infile --> $outfile\n";
   
   my $in_file_format = $opt_in_file_format ? $opt_in_file_format : lc file_ext( $infile );
 
@@ -248,7 +247,7 @@ sub process_file
       my $ans_ok;
       while( ! $ans_ok )
         {
-        print "\n[$outfile] exists, overwrite? (Yes|Always|No|Never)?";
+        print "\n[$outfile] exists, overwrite? [Yes|Always|No|Never]? ";
         my $ans = lc <STDIN>;
         if( $ans =~ /^\s*y(es)?\s*$/ )
           {
