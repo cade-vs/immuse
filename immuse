@@ -15,6 +15,13 @@ use Data::Tools;
 # TODO: gamma (-m)? for all channels or by channel
 # TODO: crop (-c geo)?
 
+# what angle should image be rotated depending EXIF 'Image Orientation' tag
+our %ROTATION = (
+           'Top, Left-Hand'    =>   0, # normal, do nothing
+           'Right-Hand, Top'   =>  90, # 90 degrees, CW
+           'Left-Hand, Bottom' => -90, # 90 degrees, CCW
+           );
+
 INIT { $| = 1; }
 
 our $help_text = <<END;
@@ -184,9 +191,6 @@ while( @ARGV )
   push @args, $_;
   }
 
-
-print @args;
-
 if( $opt_in_file_format =~ /help|list/ or $opt_out_file_format =~ /help|list/ )
   {
   print "supported input  formats: " . join( ',', sort keys %OFMT ) . "\n";
@@ -195,6 +199,12 @@ if( $opt_in_file_format =~ /help|list/ or $opt_out_file_format =~ /help|list/ )
 
 die "error: -o can be used to convert only single file\n" if @args > 1 and $opt_out_file_name;
 die "status: nothing to do: no file names specified\n" unless @args > 0;
+
+if( $opt_rotate eq 'exif' )
+  {
+  eval { require Image::EXIF; };
+  die "error: EXIF rotation not available, Image::EXIF is required.\n$@\n" if $@;
+  }
 
 for my $infile ( @args )
 {
@@ -315,18 +325,32 @@ sub process_file
   $img->flip( dir => "v" ) if $opt_flip_v;
 
   my $rotate;
-  if( $opt_rotate eq 'exif' )
+  if( $opt_rotate eq 'exif' and $in_file_format eq 'jpeg' )
     {
     $rotate = 0;
+    eval
+      {
+      my $exif = Image::EXIF->new( $infile )->get_image_info();
+      $rotate = $ROTATION{ $exif->{ 'Image Orientation' } };
+      };
+    if( $@ )  
+      {
+      $rotate = 0;
+      print STDERR "error: cannot get exif info for [$infile] $@\n";
+      }
     }
   else
     {
     $rotate = $opt_rotate;
     }
     
-  $img = $img->rotate( degrees => $rotate ) if $rotate;
+  if( $rotate )
+    {
+    print "rotating image [$infile] at $rotate degrees\n";
+    $img = $img->rotate( degrees => $rotate );
+    }
   
-  $img = $img->convert( preset => 'grey'  );
+  $img = $img->convert( preset => 'grey'  ) if $opt_grayscale;
 
   $img->write( file => $outfile, type => $opt_out_file_format )
     or die "cannot read [$outfile]: " . $img->errstr() . "\n";
