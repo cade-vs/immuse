@@ -36,8 +36,8 @@ options:
     -y height            -- sets output image width in pixels (keeps aspect!)
     -x width%            -- sets output image width in percents (keeps aspect!)
     -y height%           -- sets output image width in percents (keeps aspect!)
-    -h                   -- flip image horizontally 
-    -v                   -- flip image vertically   
+    -fh                  -- flip image horizontally 
+    -fv                  -- flip image vertically   
     -g                   -- convert image to grayscale
     -r degrees           -- rotate by degrees CW, negative for CCW
     -r exif              -- rotate by EXIF info
@@ -72,6 +72,12 @@ my $opt_flip_h;
 my $opt_flip_v;
 my $opt_grayscale;
 
+eval 
+  { 
+  require Imager::File::WEBP; 
+  require Imager::File::HEIF; 
+  };
+
 my %IFMT = map { $_ => $_ } Imager->read_types();
 my %OFMT = map { $_ => $_ } Imager->write_types();
 
@@ -82,7 +88,7 @@ $OFMT{ 'jpg' } = 'jpeg' if exists $OFMT{ 'jpeg' };
 if( @ARGV == 0 )
   {
   print $help_text;
-  exit;
+  print_supported_formats();
   }
 
 our @args;
@@ -99,12 +105,12 @@ while( @ARGV )
     $opt_grayscale = 1;
     next;
     }
-  if( /^-h$/ )
+  if( /^-fh$/ )
     {
     $opt_flip_h = 1;
     next;
     }
-  if( /^-v$/ )
+  if( /^-fv$/ )
     {
     $opt_flip_v = 1;
     next;
@@ -138,12 +144,14 @@ while( @ARGV )
   if( /^-f([a-z]*)$/i )
     {
     $opt_out_file_format = lc $1 || lc shift;
+    print_supported_formats() if $opt_out_file_format eq 'list';
     die "error: unsupported output file format [$opt_out_file_format] use '-f list'\n" unless exists $OFMT{ $opt_out_file_format };
     next;
     }
   if( /^-i([a-z]*)$/ )
     {
     $opt_in_file_format = lc $1 || lc shift;
+    print_supported_formats() if $opt_in_file_format eq 'list';
     die "error: unsupported input file format [$opt_in_file_format] use '-i list'\n" unless exists $IFMT{ $opt_in_file_format };
     next;
     }
@@ -211,17 +219,25 @@ for my $infile ( @args )
   process_file( $infile );
 }
 
+#print_supported_formats();
 exit 0;
 
 ##############################################################################
+
+sub print_supported_formats
+{
+  print "Supported input  file formats: " . join( ',', sort keys %IFMT ) . "\n";
+  print "Supported output file formats: " . join( ',', sort keys %OFMT ) . "\n";
+  exit;
+}
 
 sub process_file
 {
   my $infile = shift;
 
-  my $out_file_format = $opt_out_file_format ? $opt_out_file_format : lc file_ext( $infile );
-  
-  
+  my $in_file_format  = $opt_in_file_format  ? $opt_in_file_format  : lc file_ext( $infile  );
+  my $out_file_format = $in_file_format;
+
   my $out_dir;
   $out_dir = $opt_out_dir . '/' if $opt_out_dir;
   if( ! $out_dir )
@@ -235,9 +251,9 @@ sub process_file
     $outfile = $out_dir . file_name( $infile ) . '.' . $out_file_format;
     }
   
-  my $in_file_format = $opt_in_file_format ? $opt_in_file_format : lc file_ext( $infile );
+  $out_file_format = $opt_out_file_format ? $opt_out_file_format : lc file_ext( $outfile );
 
-  die "error: unsupported input file format [$in_file_format] use '-i list'\n"  unless exists $IFMT{ $in_file_format };
+  die "error: unsupported input file format [$in_file_format] use '-i list'\n"   unless exists $IFMT{ $in_file_format  };
   die "error: unsupported output file format [$out_file_format] use '-f list'\n" unless exists $OFMT{ $out_file_format };
 
   $in_file_format  = $IFMT{ $in_file_format  };
