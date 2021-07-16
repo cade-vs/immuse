@@ -4,7 +4,7 @@ IMMUSE is command-line image conversion and manipulation utility
 
 # SYNOPSIS
 
-    immuse -r 90 -a -f gif *.jpg
+    immuse -r 90 -a -f gif \*.jpg
     immuse -i jpeg file.bin -f png -o file.png
     immuse -x 800 -y 600 -q 77 ../*.jpg
 
@@ -63,13 +63,12 @@ IMMUSE is written in Perl and uses Imager perl module.
 
 # AUTHOR
 
-    Vladi Belperchinov-Shabanski "Cade"
-
-    <cade@bis.bg> <cade@cpan.org> <shabanski@gmail.com>
-
-    http://cade.datamax.bg
+    2018-2021 (c) Vladi Belperchinov-Shabanski "Cade" 
     
+    <cade@noxrun.com> <cade@bis.bg> <cade@cpan.org>
 
-    https://github.com/cade-vs
+    http://cade.noxrun.com/projects/immuse
+
+    http://github.com/cade-vs/immuse
 
 ## EOF
