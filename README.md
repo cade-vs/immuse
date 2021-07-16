@@ -4,7 +4,7 @@ IMMUSE is command-line image conversion and manipulation utility
 
 # SYNOPSIS
 
-    immuse -r 90 -a -f gif \*.jpg
+    immuse -r 90 -a -f gif *.jpg
     immuse -i jpeg file.bin -f png -o file.png
     immuse -x 800 -y 600 -q 77 ../*.jpg
 
