@@ -2,7 +2,7 @@
 ##############################################################################
 ##
 ##  immuse -- image file conversion utility
-##  2018 (c) Vladi Belperchinov-Shabanski "Cade"
+##  2018-2021 (c) Vladi Belperchinov-Shabanski "Cade"
 ##  <cade@bis.bg> <cade@biscom.net> <cade@cpan.org>
 ##
 ##  LICENSE: GPLv2
@@ -36,6 +36,7 @@ options:
     -y height            -- sets output image width in pixels (keeps aspect!)
     -x width%            -- sets output image width in percents (keeps aspect!)
     -y height%           -- sets output image width in percents (keeps aspect!)
+    -z size              -- crops and scale middle square part of "size"
     -k                   -- keep aspect when scaling (inside -x -y pixels)
     -fh                  -- flip image horizontally 
     -fv                  -- flip image vertically   
@@ -65,6 +66,7 @@ my $opt_out_x;
 my $opt_out_y;
 my $opt_out_x_percents;
 my $opt_out_y_percents;
+my $opt_out_z;
 my $opt_keep_aspect;
 my $opt_out_quality = 72;
 my $opt_always_overwrite;
@@ -174,7 +176,7 @@ while( @ARGV )
     }
   if( /^-y(\d*%?)$/ )
     {
-    $opt_out_y = shift;
+    $opt_out_y = $1 || shift;
     if( $opt_out_y =~ s/%$// )
       {
       $opt_out_y_percents = $opt_out_y;
@@ -185,6 +187,11 @@ while( @ARGV )
       {
       die "error: -y must be non-zero positive number\n" if $opt_out_y <= 0;
       }  
+    next;
+    }
+  if( /^-z(\d*)$/ )
+    {
+    $opt_out_z = $1 || shift;
     next;
     }
   if( /^-k$/ )
@@ -313,6 +320,21 @@ sub process_file
   # scale
   my $in_w = $img->getwidth();
   my $in_h = $img->getheight();
+
+  if( $opt_out_z > 0 )
+    {
+    my $oz = $in_w > $in_h ? $in_h : $in_w;
+    my $ox = $in_w > $in_h ? int( $oz / 2 ) : 0;
+    my $oy = $in_w < $in_h ? int( $oz / 2 ) : 0;
+    
+    $img = $img->crop( left => $ox, top => $oy, right => ( $ox + $oz ), bottom => ( $oy + $oz ) );
+    
+    $in_w = $oz;
+    $in_h = $oz;
+    
+    $opt_out_x = $opt_out_z;
+    $opt_out_y = $opt_out_z;
+    }
   
   my $out_w;
   my $out_h;
