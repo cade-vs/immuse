@@ -36,6 +36,7 @@ options:
     -y height            -- sets output image width in pixels (keeps aspect!)
     -x width%            -- sets output image width in percents (keeps aspect!)
     -y height%           -- sets output image width in percents (keeps aspect!)
+    -k                   -- keep aspect when scaling (inside -x -y pixels)
     -fh                  -- flip image horizontally 
     -fv                  -- flip image vertically   
     -g                   -- convert image to grayscale
@@ -64,6 +65,7 @@ my $opt_out_x;
 my $opt_out_y;
 my $opt_out_x_percents;
 my $opt_out_y_percents;
+my $opt_keep_aspect;
 my $opt_out_quality = 72;
 my $opt_always_overwrite;
 my $opt_never_overwrite;
@@ -183,6 +185,11 @@ while( @ARGV )
       {
       die "error: -y must be non-zero positive number\n" if $opt_out_y <= 0;
       }  
+    next;
+    }
+  if( /^-k$/ )
+    {
+    $opt_keep_aspect = 1;
     next;
     }
   if( /^-q(\d*)$/ )
@@ -315,8 +322,24 @@ sub process_file
 
   if( $opt_out_x > 0 and $opt_out_y > 0 )  
     {
-    $out_w = $opt_out_x;
-    $out_h = $opt_out_y;
+    if( $opt_keep_aspect )
+      {
+      if( $opt_out_x > $opt_out_y )
+        {
+        $out_h = $opt_out_y;
+        $out_w = int( $in_w * $out_h / $in_h );
+        }
+      else
+        {
+        $out_w = $opt_out_x;
+        $out_h = int( $in_h * $out_w / $in_w );
+        }  
+      }
+    else
+      {  
+      $out_w = $opt_out_x;
+      $out_h = $opt_out_y;
+      }
     }
   elsif( $opt_out_x <= 0 and $opt_out_y > 0 )  
     {
@@ -333,7 +356,8 @@ sub process_file
 
   if( $out_w > 0 and $out_h > 0 )  
     {
-    print "scaling to $out_w x $out_h\n";
+    my $as = $opt_keep_aspect ? '(keeping aspect)' : '';
+    print "scaling to $out_w x $out_h $as\n";
     $img = $img->scale( xpixels => $out_w, ypixels => $out_h, type => 'nonprop' ) ;
     }
 
