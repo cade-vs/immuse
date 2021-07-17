@@ -27,6 +27,8 @@ our %ROTATION = (
 INIT { $| = 1; }
 
 our $help_text = <<END;
+IMMUSE v$VERSION 2018-2021 (c) Vladi Belperchinov-Shabanski "Cade" <cade\@noxrun.com>
+
 usage: $0 <options> [input-files]
 
 options:
