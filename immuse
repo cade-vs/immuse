@@ -319,11 +319,14 @@ sub process_file
   
   # *** LOAD IMAGE
   my $img = Imager->new();
-  $img->read( file => $infile, type => $in_file_format )
-    or die "cannot read [$infile]: " . $img->errstr() . "\n";
+  if( ! $img->read( file => $infile, type => $in_file_format ) )
+    {
+    print "ERROR: cannot read [$infile]: " . $img->errstr() . "\n";
+    return;
+    }
 
   # *** ROTATE
-  my $rotate;
+  my $rotate = $opt_rotate;
   if( $opt_rotate eq 'exif' and $in_file_format eq 'jpeg' )
     {
     $rotate = 0;
@@ -338,9 +341,10 @@ sub process_file
       print STDERR "error: cannot get exif info for [$infile] $@\n";
       }
     }
-  else
+  if( $opt_rotate eq 'exif' and $in_file_format ne 'jpeg' )
     {
-    $rotate = $opt_rotate;
+    print "status: ignoring EXIF rotate for [$in_file_format] image\n";
+    $rotate = 0;
     }
     
   if( $rotate )
@@ -411,12 +415,16 @@ sub process_file
 #print "$opt_out_x_percents $opt_out_y_percents $opt_out_x $opt_out_y -- $out_w $out_h\n";
 
   # *** REPORT SCALE SIZE
-  if( $out_w > 0 and $out_h > 0 )  
+  if( $out_w > 0 and $out_h > 0 and $out_w != $in_w and $out_h != $in_h )  
     {
     my $as = $opt_keep_aspect ? '(keeping aspect)' : '';
     print "scaling to $out_w x $out_h $as\n";
     $img = $img->scale( xpixels => $out_w, ypixels => $out_h, type => 'nonprop' ) ;
     }
+  else
+    {
+    print "image already at size $out_w x $out_h, ignore scaling\n";
+    }  
 
   # *** FLIPs
   $img->flip( dir => "h" ) if $opt_flip_h;
