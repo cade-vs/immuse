@@ -317,10 +317,12 @@ sub process_file
 
   print "\n";
   
+  # *** LOAD IMAGE
   my $img = Imager->new();
   $img->read( file => $infile, type => $in_file_format )
     or die "cannot read [$infile]: " . $img->errstr() . "\n";
 
+  # *** ROTATE
   my $rotate;
   if( $opt_rotate eq 'exif' and $in_file_format eq 'jpeg' )
     {
@@ -347,7 +349,7 @@ sub process_file
     $img = $img->rotate( degrees => $rotate );
     }
 
-  # scale
+  # *** SCALE
   my $in_w = $img->getwidth();
   my $in_h = $img->getheight();
 
@@ -376,16 +378,18 @@ sub process_file
     {
     if( $opt_keep_aspect )
       {
-      if( $opt_out_x > $opt_out_y )
-        {
-        $out_h = $opt_out_y;
-        $out_w = int( $in_w * $out_h / $in_h );
-        }
-      else
+      # print "IN SIZE: $in_w x $in_h -- SHOULD KEEP ASPECT --> TO --> $opt_out_x > $opt_out_y\n";
+      if( $in_w > $in_h )
         {
         $out_w = $opt_out_x;
         $out_h = int( $in_h * $out_w / $in_w );
-        }  
+        }
+      else
+        {
+        $out_h = $opt_out_y;
+        $out_w = int( $in_w * $out_h / $in_h );
+        }   
+      # print "IN SIZE: $out_w x $out_h <-- scaled\n";
       }
     else
       {  
@@ -406,6 +410,7 @@ sub process_file
 
 #print "$opt_out_x_percents $opt_out_y_percents $opt_out_x $opt_out_y -- $out_w $out_h\n";
 
+  # *** REPORT SCALE SIZE
   if( $out_w > 0 and $out_h > 0 )  
     {
     my $as = $opt_keep_aspect ? '(keeping aspect)' : '';
@@ -413,11 +418,14 @@ sub process_file
     $img = $img->scale( xpixels => $out_w, ypixels => $out_h, type => 'nonprop' ) ;
     }
 
+  # *** FLIPs
   $img->flip( dir => "h" ) if $opt_flip_h;
   $img->flip( dir => "v" ) if $opt_flip_v;
 
+  # *** CONVERT TO GRAY
   $img = $img->convert( preset => 'grey'  ) if $opt_grayscale;
 
+  # *** SAVE IMAGE
   $img->write( file => $outfile, type => $opt_out_file_format )
     or die "cannot read [$outfile]: " . $img->errstr() . "\n";
   
