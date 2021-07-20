@@ -321,6 +321,32 @@ sub process_file
   $img->read( file => $infile, type => $in_file_format )
     or die "cannot read [$infile]: " . $img->errstr() . "\n";
 
+  my $rotate;
+  if( $opt_rotate eq 'exif' and $in_file_format eq 'jpeg' )
+    {
+    $rotate = 0;
+    eval
+      {
+      my $exif = Image::EXIF->new( $infile )->get_image_info();
+      $rotate = $ROTATION{ $exif->{ 'Image Orientation' } };
+      };
+    if( $@ )  
+      {
+      $rotate = 0;
+      print STDERR "error: cannot get exif info for [$infile] $@\n";
+      }
+    }
+  else
+    {
+    $rotate = $opt_rotate;
+    }
+    
+  if( $rotate )
+    {
+    print "rotating image [$infile] at $rotate degrees\n";
+    $img = $img->rotate( degrees => $rotate );
+    }
+
   # scale
   my $in_w = $img->getwidth();
   my $in_h = $img->getheight();
@@ -390,32 +416,6 @@ sub process_file
   $img->flip( dir => "h" ) if $opt_flip_h;
   $img->flip( dir => "v" ) if $opt_flip_v;
 
-  my $rotate;
-  if( $opt_rotate eq 'exif' and $in_file_format eq 'jpeg' )
-    {
-    $rotate = 0;
-    eval
-      {
-      my $exif = Image::EXIF->new( $infile )->get_image_info();
-      $rotate = $ROTATION{ $exif->{ 'Image Orientation' } };
-      };
-    if( $@ )  
-      {
-      $rotate = 0;
-      print STDERR "error: cannot get exif info for [$infile] $@\n";
-      }
-    }
-  else
-    {
-    $rotate = $opt_rotate;
-    }
-    
-  if( $rotate )
-    {
-    print "rotating image [$infile] at $rotate degrees\n";
-    $img = $img->rotate( degrees => $rotate );
-    }
-  
   $img = $img->convert( preset => 'grey'  ) if $opt_grayscale;
 
   $img->write( file => $outfile, type => $opt_out_file_format )
