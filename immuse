@@ -234,7 +234,7 @@ if( $opt_rotate eq 'exif' )
 
 for my $infile ( @args )
 {
-  process_file( $infile );
+  process_file( $infile, ( @args == 1 ? ( $opt_out_file_name ) : () ) );
 }
 
 #print_supported_formats();
@@ -251,10 +251,11 @@ sub print_supported_formats
 
 sub process_file
 {
-  my $infile = shift;
+  my $infile  = shift;
+  my $outfile = shift;
 
-  my $in_file_format  = $opt_in_file_format  ? $opt_in_file_format  : lc file_ext( $infile  );
-  my $out_file_format = $in_file_format;
+  my $in_file_format  = $opt_in_file_format  || lc file_ext( $infile  );
+  my $out_file_format = $opt_out_file_format || $in_file_format;
 
   my $out_dir;
   $out_dir = $opt_out_dir . '/' if $opt_out_dir;
@@ -263,7 +264,6 @@ sub process_file
     $out_dir = file_path( $infile ) ? file_path( $infile ) . '/' : undef;
     }
   
-  my $outfile = $opt_out_file_name;
   if( ! $outfile )
     {
     $outfile = $out_dir . file_name( $infile ) . '.' . $out_file_format;
@@ -423,7 +423,7 @@ sub process_file
     }
   else
     {
-    print "image already at size $out_w x $out_h, ignore scaling\n";
+    print "image already at size $out_w x $out_h, ignore scaling\n" if $out_w > 0 and $out_h > 0;
     }  
 
   # *** FLIPs
