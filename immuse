@@ -90,8 +90,10 @@ my %IFMT = map { $_ => $_ } Imager->read_types();
 my %OFMT = map { $_ => $_ } Imager->write_types();
 
 # known format shortcuts
-$IFMT{ 'jpg' } = 'jpeg' if exists $IFMT{ 'jpeg' };
-$OFMT{ 'jpg' } = 'jpeg' if exists $OFMT{ 'jpeg' };
+$IFMT{ 'jpg'  } = 'jpeg' if exists $IFMT{ 'jpeg' };
+$OFMT{ 'jpg'  } = 'jpeg' if exists $OFMT{ 'jpeg' };
+$IFMT{ 'heic' } = 'heif' if exists $IFMT{ 'heif' };
+$OFMT{ 'heic' } = 'heif' if exists $OFMT{ 'heif' };
 
 if( @ARGV == 0 )
   {
