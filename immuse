@@ -84,6 +84,7 @@ eval
   { 
   require Imager::File::WEBP; 
   require Imager::File::HEIF; 
+  require Imager::File::QOI; 
   };
 
 my %IFMT = map { $_ => $_ } Imager->read_types();
@@ -329,7 +330,7 @@ sub process_file
 
   # *** ROTATE
   my $rotate = $opt_rotate;
-  if( $opt_rotate eq 'exif' and $in_file_format eq 'jpeg' )
+  if( $opt_rotate eq 'exif' and $in_file_format =~ /^(jpeg|heif)$/i )
     {
     $rotate = 0;
     eval
@@ -343,7 +344,7 @@ sub process_file
       print STDERR "error: cannot get exif info for [$infile] $@\n";
       }
     }
-  if( $opt_rotate eq 'exif' and $in_file_format ne 'jpeg' )
+  if( $opt_rotate eq 'exif' and $in_file_format !~ /^(jpeg|heif)$/i )
     {
     print "status: ignoring EXIF rotate for [$in_file_format] image\n";
     $rotate = 0;
