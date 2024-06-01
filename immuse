@@ -293,7 +293,7 @@ sub process_file
       my $ans_ok;
       while( ! $ans_ok )
         {
-        print "\n[$outfile] exists, overwrite? [Yes|Always|No|Never]? ";
+        print "\n[$outfile] exists, overwrite? [Yes|Always|No|NEver]? ";
         my $ans = lc <STDIN>;
         if( $ans =~ /^\s*y(es)?\s*$/ )
           {
@@ -308,7 +308,7 @@ sub process_file
           $ans_ok = 1;
           $opt_always_overwrite = 1;
           }
-        elsif( $ans =~ /^\s*n(ever)?\s*$/ )  
+        elsif( $ans =~ /^\s*ne(ver)?\s*$/ )  
           {
           $opt_never_overwrite = 1;
           return;
