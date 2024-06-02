@@ -72,7 +72,7 @@ my $opt_out_x_percents;
 my $opt_out_y_percents;
 my $opt_out_z;
 my $opt_keep_aspect;
-my $opt_out_quality = 72;
+my $opt_out_quality = 75;
 my $opt_always_overwrite;
 my $opt_never_overwrite;
 my $opt_rotate;
@@ -209,7 +209,7 @@ while( @ARGV )
   if( /^-q(\d*)$/ )
     {
     $opt_out_quality = int($1 || shift);
-    $opt_out_quality = 72 if $opt_out_quality < 1 or $opt_out_quality > 100;
+    $opt_out_quality = 75 if $opt_out_quality < 1 or $opt_out_quality > 100;
     next;
     }
   if( /^(--?h(elp)?|help)$/io )
@@ -436,8 +436,10 @@ sub process_file
   # *** CONVERT TO GRAY
   $img = $img->convert( preset => 'grey'  ) if $opt_grayscale;
 
+  my %out_opt;
+  $out_opt{ 'jpegquality' } = $opt_out_quality if $opt_out_file_format eq 'jpeg';
   # *** SAVE IMAGE
-  $img->write( file => $outfile, type => $opt_out_file_format )
+  $img->write( file => $outfile, type => $opt_out_file_format, %out_opt )
     or die "cannot read [$outfile]: " . $img->errstr() . "\n";
   
 }
