@@ -45,7 +45,7 @@ options:
     -fh                  -- flip image horizontally 
     -fv                  -- flip image vertically   
     -g                   -- convert image to grayscale
-    -r degrees           -- rotate by degrees CW, negative for CCW
+    -r degrees           -- rotate by degrees CW, negative CCW, 'exif' is auto
     -r exif              -- rotate by EXIF info if available
     -q quality           -- output quality in percents (if applicable)
     -a                   -- always overwrite files (WARNING!)
@@ -95,6 +95,10 @@ $IFMT{ 'jpg'  } = 'jpeg' if exists $IFMT{ 'jpeg' };
 $OFMT{ 'jpg'  } = 'jpeg' if exists $OFMT{ 'jpeg' };
 $IFMT{ 'heic' } = 'heif' if exists $IFMT{ 'heif' };
 $OFMT{ 'heic' } = 'heif' if exists $OFMT{ 'heif' };
+$IFMT{ 'pgm'  } = 'pnm'  if exists $IFMT{ 'pnm'  };
+#$OFMT{ 'pgm'  } = 'pnm'  if exists $OFMT{ 'pnm'  };
+$IFMT{ 'ppm'  } = 'pnm'  if exists $IFMT{ 'pnm'  };
+#$OFMT{ 'ppm'  } = 'pnm'  if exists $OFMT{ 'pnm'  };
 
 if( @ARGV == 0 )
   {
